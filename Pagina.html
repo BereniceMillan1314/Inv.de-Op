@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"> //El UTF-8 es la codificación de caracteres más utilizada en internet, con codificación de 8 bits.
+    <title>Método Esquina Noroeste Visual</title>
+    <style>
+        /* SOLO CSS PARA EL VISUAL */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(60, 72, 88, 0.12);
+            padding: 32px 28px 24px 28px;
+        }
+        h1 {
+            text-align: center;
+            color: #4f46e5;
+            margin-bottom: 18px;
+            font-size: 2.2em;
+            letter-spacing: 1px;
+        }
+        form {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        label {
+            font-weight: 500;
+            color: #374151;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #c7d2fe;
+            background: #f1f5f9;
+            font-size: 1em;
+            text-align: center;
+            margin-left: 4px;
+        }
+        button {
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 4px;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        .input-table {
+            margin: 0 auto 18px auto;
+            box-shadow: 0 2px 8px rgba(60, 72, 88, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .input-table th, .input-table td {
+            border: 1px solid #e0e7ff;
+            padding: 8px;
+            background: #f3f4f6;
+        }
+        .input-table th {
+            background: #6366f1;
+            color: #fff;
+            font-weight: 600;
+        }
+        .oferta-col {
+            background: #e0e7ff !important;
+            font-weight: 500;
+        }
+        .demanda-row {
+            background: #e0e7ff !important;
+            font-weight: 500;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .resultado-table {
+            margin: 0 auto 12px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(60, 72, 88, 0.08);
+        }
+        .resultado-table th, .resultado-table td {
+            border: 1px solid #e0e7ff;
+            padding: 8px;
+            background: #f8fafc;
+        }
+        .resultado-table th {
+            background: #6366f1;
+            color: #fff;
+            font-weight: 600;
+        }
+        .resultado-table .oferta-col, .resultado-table .demanda-row {
+            background: #e0e7ff !important;
+            font-weight: 500;
+        }
+        .costo-total {
+            text-align: center;
+            font-size: 1.1em;
+            color: #374151;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        @media (max-width: 800px) {
+            .container { max-width: 98vw; padding: 10vw 2vw; }
+            form { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Método Esquina Noroeste</h1>
+        <form id="datosForm" onsubmit="return false;">
+            <label>Número de ofertas:
+                <input type="number" id="numOfertas" min="1" value="3">
+            </label>
+            <label>Número de demandas:
+                <input type="number" id="numDemandas" min="1" value="3">
+            </label>
+            <button type="button" onclick="generarTabla()">Generar matriz</button>
+            <button type="button" onclick="generarAleatorio()">Tabla aleatoria</button>
+        </form>
+        <div id="matrizInputs"></div>
+        <div id="botonResolver"></div>
+        <h2 style="color:#6366f1;text-align:center;margin-top:30px;">Solución:</h2>
+        <div id="resultado"></div>
+    </div>
+
+<script>
+    //EMPIEXA EL SCRIPT PARA EL MÉTODO ESQUINA NOROESTE
+function generarTabla(ofertaArr = null, demandaArr = null, costosArr = null) {
+    let m = parseInt(document.getElementById('numOfertas').value);
+    let n = parseInt(document.getElementById('numDemandas').value);
+    let html = '<table class="input-table"><tr><th></th>';
+    for(let j=0;j<n;j++) html += `<th>Demanda ${j+1}</th>`;
+    html += '<th class="oferta-col">Oferta</th></tr>';
+    for(let i=0;i<m;i++) {
+        html += `<tr><th>Oferta ${i+1}</th>`;
+        for(let j=0;j<n;j++) {
+            let val = costosArr ? costosArr[i][j] : 0;
+            html += `<td><input type="number" id="c_${i}_${j}" value="${val}" min="0"></td>`;
+        }
+        let ofertaVal = ofertaArr ? ofertaArr[i] : 0;
+        html += `<td class="oferta-col"><input type="number" id="oferta_${i}" value="${ofertaVal}" min="0"></td></tr>`;
+    }
+    html += '<tr class="demanda-row"><th>Demanda</th>';
+    for(let j=0;j<n;j++) {
+        let demandaVal = demandaArr ? demandaArr[j] : 0;
+        html += `<td><input type="number" id="demanda_${j}" value="${demandaVal}" min="0"></td>`;
+    }
+    html += '<td></td></tr></table>';
+    document.getElementById('matrizInputs').innerHTML = html;
+    document.getElementById('botonResolver').innerHTML = '<button type="button" style="margin-top:10px;" onclick="resolver()">Resolver</button>';
+}
+
+function generarAleatorio() {
+    let m = parseInt(document.getElementById('numOfertas').value);
+    let n = parseInt(document.getElementById('numDemandas').value);
+
+    // Generar costos aleatorios
+    let costos = [];
+    for(let i=0;i<m;i++) {
+        costos[i] = [];
+        for(let j=0;j<n;j++) {
+            costos[i][j] = Math.floor(Math.random() * 20) + 1;
+        }
+    }
+
+    // Generar oferta y demanda aleatorias que sumen igual
+    let total = Math.floor(Math.random() * 50) + 30;
+    let oferta = [];
+    let demanda = [];
+    let ofertaRest = total;
+    let demandaRest = total;
+
+    for(let i=0;i<m-1;i++) {
+        let val = Math.floor(Math.random() * (ofertaRest - (m-i-1))) + 1;
+        oferta[i] = val;
+        ofertaRest -= val;
+    }
+    oferta[m-1] = ofertaRest;
+
+    for(let j=0;j<n-1;j++) {
+        let val = Math.floor(Math.random() * (demandaRest - (n-j-1))) + 1;
+        demanda[j] = val;
+        demandaRest -= val;
+    }
+    demanda[n-1] = demandaRest;
+
+    generarTabla(oferta, demanda, costos);
+}
+// Resolver el problema usando el método Esquina Noroeste
+function resolver() {
+    // Obtener número de ofertas y demandas
+    let m = parseInt(document.getElementById('numOfertas').value);
+    let n = parseInt(document.getElementById('numDemandas').value);
+    let oferta = [];
+    let demanda = [];
+    let costos = [];
+    // Obtener ofertas y demandas
+    for(let i=0;i<m;i++) {
+        oferta[i] = parseInt(document.getElementById('oferta_'+i).value) || 0;
+        costos[i] = [];
+        for(let j=0;j<n;j++) {
+            costos[i][j] = parseInt(document.getElementById('c_'+i+'_'+j).value) || 0;
+        }
+    }
+    for(let j=0;j<n;j++) {
+        demanda[j] = parseInt(document.getElementById('demanda_'+j).value) || 0;
+    }
+    // Calcular sumas de oferta y demanda
+    let sumaOferta = oferta.reduce((a,b)=>a+b,0);
+    let sumaDemanda = demanda.reduce((a,b)=>a+b,0);
+
+    // Validar que la suma de oferta y demanda sean iguales
+    if(sumaOferta !== sumaDemanda) {
+        document.getElementById('resultado').innerHTML = `<span class="error">Error: La suma de la oferta (${sumaOferta}) debe ser igual a la suma de la demanda (${sumaDemanda}).</span>`;
+        return;
+    }
+
+    // Método Esquina Noroeste
+    // Crear matriz de asignaciones
+    let asignacion = Array.from({length: m}, () => Array(n).fill(0));
+    let ofertaRest = oferta.slice();
+    let demandaRest = demanda.slice();
+    let i = 0, j = 0;
+    
+    // Mientras no se llegue al final de las filas y columnas
+    while(i < m && j < n) {
+        let cantidad = Math.min(ofertaRest[i], demandaRest[j]);
+        asignacion[i][j] = cantidad;
+        ofertaRest[i] -= cantidad;
+        demandaRest[j] -= cantidad;
+        // Mover a la siguiente fila o columna según corresponda
+        if(ofertaRest[i] === 0 && i < m-1) {
+            i++;
+        } else if(demandaRest[j] === 0 && j < n-1) {
+            j++;
+        } else if(ofertaRest[i] === 0 && demandaRest[j] === 0) {
+            i++;
+            j++;
+        }
+    }
+    // Mostrar resultado visual
+    // Crear tabla HTML
+    
+    let html = '<table class="resultado-table"><tr><th></th>';
+    for(let j=0;j<n;j++) html += `<th>Demanda ${j+1}</th>`;
+    html += '<th class="oferta-col">Oferta</th></tr>';
+    // Crear filas y columnas
+    for(let i=0;i<m;i++) {
+        html += `<tr><th>Oferta ${i+1}</th>`;
+        for(let j=0;j<n;j++) {
+            html += `<td>${asignacion[i][j]}</td>`;
+        }
+        html += `<td class="oferta-col">${oferta[i]}</td></tr>`;
+    }
+    html += '<tr class="demanda-row"><th>Demanda</th>';
+    for(let j=0;j<n;j++) {
+        html += `<td>${demanda[j]}</td>`;
+    }
+    html += '<td></td></tr></table>';
+    
+    // Costo total
+    let total = 0;
+    for(let f=0;f<m;f++)
+        for(let c=0;c<n;c++)
+            total += asignacion[f][c] * costos[f][c];
+    html += `<div class="costo-total"><b>Costo total:</b> ${total}</div>`;
+    document.getElementById('resultado').innerHTML = html;
+}
+</script>
+</body>
+</html>
